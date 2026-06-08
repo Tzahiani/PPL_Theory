@@ -1,4 +1,5 @@
 import { readModuleProgress, THEORY_MODULES } from '../config/theoryModules';
+import AppFooter from '../components/AppFooter';
 
 const ACCENT_STYLES = {
   sky: {
@@ -164,9 +165,7 @@ export default function HomePage({ onSelect, darkMode, setDarkMode }) {
         </div>
       </main>
 
-      <footer className="border-t border-slate-200/70 py-6 text-center text-xs text-slate-500 dark:border-slate-800">
-        Cessna 152 Theory Hub · נתונים נשמרים ב-LocalStorage
-      </footer>
+      <AppFooter />
     </div>
   );
 }

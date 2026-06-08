@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import AppFooter from './components/AppFooter';
 
 const FILTER_ALL = 'all';
 const FILTER_INCORRECT = 'incorrect';
@@ -895,9 +896,7 @@ export default function ExamSimulator({ module, onBack, darkMode, setDarkMode })
         )}
       </main>
 
-      <footer className="border-t border-slate-200/70 py-6 text-center text-xs text-slate-500 dark:border-slate-800 dark:text-slate-500">
-        {module.title} · Cessna 152 · נתונים נשמרים ב-LocalStorage
-      </footer>
+      <AppFooter subtitle={`${module.title} · Cessna 152`} />
     </div>
   );
 }
