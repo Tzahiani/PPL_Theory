@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import AppFooter from './components/AppFooter';
+import { trackAnswer, trackExamSubmit } from './analytics/track';
 
 const FILTER_ALL = 'all';
 const FILTER_INCORRECT = 'incorrect';
@@ -362,11 +363,19 @@ export default function ExamSimulator({ module, onBack, darkMode, setDarkMode })
     (questionId, index) => {
       if (revealed) return;
       setAnswers((prev) => ({ ...prev, [questionId]: index }));
+      const question = questions.find((q) => q.id === questionId);
+      if (question) {
+        trackAnswer(module.id, {
+          questionId,
+          correct: index === question.correctIndex,
+          category: question.category,
+        });
+      }
       if (feedbackMode === 'submit') {
         setExamSubmitted(false);
       }
     },
-    [revealed, feedbackMode],
+    [revealed, feedbackMode, questions, module.id],
   );
 
   const handleShuffle = useCallback(() => {
@@ -391,6 +400,12 @@ export default function ExamSimulator({ module, onBack, darkMode, setDarkMode })
       if (!proceed) return;
     }
     setExamSubmitted(true);
+    trackExamSubmit(module.id, {
+      scorePct: stats.scorePct,
+      answered: stats.answeredCount,
+      correct: stats.correctCount,
+      total: stats.total,
+    });
   };
 
   const resetForm = () => {
