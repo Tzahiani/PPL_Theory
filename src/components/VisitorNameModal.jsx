@@ -1,68 +1,49 @@
-import { useEffect, useState } from 'react';
-import { dismissNamePrompt, setVisitorName, shouldShowNamePrompt } from '../analytics/visitor';
-import { analyticsEnabled } from '../analytics/track';
+import { useState } from 'react';
+import { setVisitorName } from '../analytics/visitor';
 
-export default function VisitorNameModal() {
-  const [open, setOpen] = useState(false);
+export default function VisitorNameModal({ onRegistered }) {
   const [name, setName] = useState('');
-
-  useEffect(() => {
-    if (analyticsEnabled() && shouldShowNamePrompt()) {
-      setOpen(true);
-    }
-  }, []);
-
-  if (!open) return null;
 
   const handleSubmit = (e) => {
     e.preventDefault();
     const trimmed = name.trim();
     if (!trimmed) return;
     setVisitorName(trimmed);
-    setOpen(false);
-  };
-
-  const handleSkip = () => {
-    dismissNamePrompt();
-    setOpen(false);
+    onRegistered();
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
-      <div
-        dir="rtl"
-        className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-700 dark:bg-slate-900"
-      >
-        <h2 className="text-lg font-bold text-slate-900 dark:text-white">ברוך הבא!</h2>
+    <div
+      dir="rtl"
+      className="flex min-h-screen items-center justify-center bg-gradient-to-b from-slate-100 via-slate-50 to-sky-50 p-4 dark:from-aviation-navy dark:via-slate-900 dark:to-slate-950"
+    >
+      <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-700 dark:bg-slate-900">
+        <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500 to-cyan-600 text-xl font-black text-white shadow-lg shadow-sky-500/30">
+          PPL
+        </div>
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white">ברוך הבא למרכז התאוריה</h2>
         <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-          איך לקרוא לך? השם ישמש לזיהוי התקדמותך (לא יוצג לאחרים).
+          הזן את שמך כדי להמשיך. השם נדרש לשימוש באפליקציה.
         </p>
-        <form onSubmit={handleSubmit} className="mt-5 space-y-4">
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="השם שלך"
             autoFocus
+            required
+            minLength={2}
             maxLength={40}
             className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none ring-sky-500 focus:ring-2 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
           />
-          <div className="flex gap-3">
-            <button
-              type="submit"
-              disabled={!name.trim()}
-              className="flex-1 rounded-xl bg-sky-500 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-600 disabled:opacity-50"
-            >
-              המשך
-            </button>
-            <button
-              type="button"
-              onClick={handleSkip}
-              className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
-            >
-              דלג
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={name.trim().length < 2}
+            className="w-full rounded-xl bg-sky-500 py-3 text-sm font-semibold text-white transition hover:bg-sky-600 disabled:opacity-50"
+          >
+            כניסה לאפליקציה
+          </button>
         </form>
       </div>
     </div>

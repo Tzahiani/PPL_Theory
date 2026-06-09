@@ -1,7 +1,12 @@
 import { useEffect, useState } from 'react';
 import ExamSimulator from './ExamSimulator';
-import { isAdminRoute, trackAppVisit, trackModuleOpen, trackSessionEnd } from './analytics/track';
-import { getOrCreateVisitorId } from './analytics/visitor';
+import {
+  isAdminRoute,
+  trackAppVisit,
+  trackModuleOpen,
+  trackSessionEnd,
+} from './analytics/track';
+import { getOrCreateVisitorId, hasVisitorName } from './analytics/visitor';
 import { getModuleById } from './config/theoryModules';
 import VisitorNameModal from './components/VisitorNameModal';
 import AdminStatsPage from './pages/AdminStatsPage';
@@ -30,6 +35,7 @@ export default function App() {
   const [activeModuleId, setActiveModuleId] = useState(null);
   const [darkMode, setDarkMode] = useState(() => loadAppSettings()?.darkMode ?? true);
   const [showAdmin, setShowAdmin] = useState(isAdminRoute);
+  const [appUnlocked, setAppUnlocked] = useState(hasVisitorName);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode);
@@ -37,19 +43,20 @@ export default function App() {
   }, [darkMode]);
 
   useEffect(() => {
+    if (!appUnlocked) return;
+
     getOrCreateVisitorId();
     trackAppVisit();
 
-    const onHashChange = () => setShowAdmin(isAdminRoute());
-    window.addEventListener('hashchange', onHashChange);
-
     const onUnload = () => trackSessionEnd();
     window.addEventListener('pagehide', onUnload);
+    return () => window.removeEventListener('pagehide', onUnload);
+  }, [appUnlocked]);
 
-    return () => {
-      window.removeEventListener('hashchange', onHashChange);
-      window.removeEventListener('pagehide', onUnload);
-    };
+  useEffect(() => {
+    const onHashChange = () => setShowAdmin(isAdminRoute());
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
 
   const handleSelectModule = (moduleId) => {
@@ -57,29 +64,36 @@ export default function App() {
     setActiveModuleId(moduleId);
   };
 
+  const handleNameRegistered = () => {
+    setAppUnlocked(true);
+  };
+
   if (showAdmin) {
     return <AdminStatsPage />;
   }
 
+  if (!appUnlocked) {
+    return <VisitorNameModal onRegistered={handleNameRegistered} />;
+  }
+
   const module = activeModuleId ? getModuleById(activeModuleId) : null;
 
+  if (!module) {
+    return (
+      <HomePage
+        onSelect={handleSelectModule}
+        darkMode={darkMode}
+        setDarkMode={setDarkMode}
+      />
+    );
+  }
+
   return (
-    <>
-      <VisitorNameModal />
-      {!module ? (
-        <HomePage
-          onSelect={handleSelectModule}
-          darkMode={darkMode}
-          setDarkMode={setDarkMode}
-        />
-      ) : (
-        <ExamSimulator
-          module={module}
-          onBack={() => setActiveModuleId(null)}
-          darkMode={darkMode}
-          setDarkMode={setDarkMode}
-        />
-      )}
-    </>
+    <ExamSimulator
+      module={module}
+      onBack={() => setActiveModuleId(null)}
+      darkMode={darkMode}
+      setDarkMode={setDarkMode}
+    />
   );
 }

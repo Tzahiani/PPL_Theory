@@ -28,7 +28,7 @@ export function getOrCreateVisitorId() {
   const existing = loadVisitor();
   if (existing?.id) return existing.id;
   const id = randomId();
-  saveVisitor({ id, name: null, namePromptDismissed: false });
+  saveVisitor({ id, name: null });
   return id;
 }
 
@@ -41,23 +41,16 @@ export function setVisitorName(name) {
   saveVisitor({
     ...visitor,
     name: name.trim(),
-    namePromptDismissed: true,
   });
 }
 
-export function dismissNamePrompt() {
-  const visitor = loadVisitor() ?? { id: getOrCreateVisitorId() };
-  const anonymousName = `אנונימי-${visitor.id.slice(0, 6)}`;
-  saveVisitor({
-    ...visitor,
-    name: anonymousName,
-    namePromptDismissed: true,
-  });
-  return anonymousName;
+export function hasVisitorName() {
+  const name = loadVisitor()?.name?.trim();
+  if (!name) return false;
+  if (name.startsWith('אנונימי-')) return false;
+  return true;
 }
 
-export function shouldShowNamePrompt() {
-  const visitor = loadVisitor();
-  if (!visitor) return true;
-  return !visitor.namePromptDismissed;
+export function needsVisitorName() {
+  return !hasVisitorName();
 }
